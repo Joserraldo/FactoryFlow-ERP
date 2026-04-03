@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>FactoryFlow Test Frontend</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
+        .container { max-width: 600px; margin: auto; }
+        input, button { padding: 10px; margin: 5px 0; width: 100%; box-sizing: border-box; }
+        .card { border: 1px solid #ccc; padding: 15px; border-radius: 8px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>FactoryFlow ERP - Test</h1>
+        
+        <div class="card">
+            <h3>Verificar Backend</h3>
+            <button onclick="checkStatus()">Check API Status</button>
+            <p id="statusResult"></p>
+        </div>
+
+        <div class="card">
+            <h3>Listar Materiales</h3>
+            <button onclick="listMaterials()">Cargar Materiales</button>
+            <ul id="materialList"></ul>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:8000";
+
+        async function checkStatus() {
+            try {
+                const res = await fetch(API_URL + "/");
+                const data = await res.json();
+                document.getElementById('statusResult').innerText = JSON.stringify(data);
+            } catch (e) {
+                document.getElementById('statusResult').innerText = "Error: Backend no iniciado";
+            }
+        }
+
+        async function listMaterials() {
+            const res = await fetch(API_URL + "/materials/");
+            const data = await res.json();
+            const list = document.getElementById('materialList');
+            list.innerHTML = "";
+            data.forEach(m => {
+                const li = document.createElement('li');
+                li.innerText = `${m.name} - Stock: ${m.stock_primary} (Princip.) / ${m.stock_secondary} (Secund.)`;
+                list.appendChild(li);
+            });
+        }
+    </script>
+</body>
+</html>
