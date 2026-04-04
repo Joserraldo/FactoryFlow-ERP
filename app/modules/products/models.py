@@ -1,0 +1,33 @@
+import uuid
+from datetime import datetime, timezone
+
+from sqlalchemy import Column, DateTime, Float, ForeignKey, String
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
+
+from app.db.base import Base
+
+
+class Product(Base):
+    __tablename__ = "products"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = Column(String(100), nullable=False, index=True)
+    sale_price = Column(Float, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+    # Relationships
+    bom_items = relationship("BOMItem", back_populates="product", lazy="joined")
+
+
+class BOMItem(Base):
+    __tablename__ = "bom_items"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    product_id = Column(UUID(as_uuid=True), ForeignKey("products.id", ondelete="CASCADE"), nullable=False)
+    material_id = Column(UUID(as_uuid=True), ForeignKey("raw_materials.id"), nullable=False)
+    quantity_required = Column(Float, nullable=False)
+
+    # Relationships
+    product = relationship("Product", back_populates="bom_items")
+    material = relationship("RawMaterial", lazy="joined")

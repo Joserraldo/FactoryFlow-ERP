@@ -1,16 +1,22 @@
+import os
 from pydantic_settings import BaseSettings
-from typing import Optional
+
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "FactoryFlow ERP"
     API_V1_STR: str = "/api/v1"
-    SECRET_KEY: str = "supersecretkey_change_me_in_production"
+
+    # JWT
+    SECRET_KEY: str = "your_secret_key_from_env"
+    REFRESH_SECRET_KEY: str = "your_refresh_secret_key_from_env"
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
-    DATABASE_URL: str = "sqlite:///./factoryflow.db"
+    # Database
+    DATABASE_URL: str = "postgresql+psycopg2://user:password@localhost:5432/dbname"
 
-    class Config:
-        case_sensitive = True
+    model_config = {"case_sensitive": True, "env_file": ".env", "extra": "ignore"}
+
 
 settings = Settings()
