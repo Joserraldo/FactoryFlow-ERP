@@ -70,7 +70,7 @@ npm run dev
 
 ## 🌐 6. Abrir en el navegador
 
-http://localhost:5173
+http://localhost:8080
 
 ---
 
