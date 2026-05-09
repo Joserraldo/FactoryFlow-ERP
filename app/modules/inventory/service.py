@@ -52,12 +52,18 @@ class InventoryService:
             else:
                 self._process_out(material, data.quantity_primary, quantity_secondary)
 
+            # Validate supplier if provided
+            if data.supplier_id:
+                if not self.mat_repo.get_supplier(data.supplier_id):
+                    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Supplier not found")
+
             movement = InventoryMovement(
-                material_id=data.material_id,
+                material_id=str(data.material_id),
                 type=movement_type,
                 quantity_primary=data.quantity_primary,
                 quantity_secondary=quantity_secondary,
                 unit_cost=data.unit_cost,
+                supplier_id=str(data.supplier_id) if data.supplier_id else None,
             )
             self.inv_repo.create(movement)
 

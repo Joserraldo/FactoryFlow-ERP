@@ -3,9 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Cog, ShieldCheck, Activity } from "lucide-react";
+import { API_URL } from "@/lib/api";
+import { useState } from "react";
 
 export default function Login() {
   const nav = useNavigate();
+  const [username, setUsername] = useState("admin");
+  const [password, setPassword] = useState("admin123");
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-background">
       <div className="hidden lg:flex flex-col justify-between p-12 text-primary-foreground relative overflow-hidden" style={{ background: "var(--gradient-primary)" }}>
@@ -16,7 +20,7 @@ export default function Login() {
             <div className="text-xs opacity-70 uppercase tracking-widest">ERP Industrial</div>
           </div>
         </div>
-        <div className="space-y-6 max-w-md">
+          <div className="space-y-6 max-w-md">
           <h1 className="text-4xl font-semibold leading-tight">De la planta a los datos, de los datos a las decisiones.</h1>
           <p className="opacity-80">Solución integral de manufactura para PYMES: inventario, producción, ventas y finanzas en un solo centro de control.</p>
           <div className="grid grid-cols-2 gap-4 pt-4">
@@ -29,7 +33,25 @@ export default function Login() {
 
       <div className="flex items-center justify-center p-8">
         <form
-          onSubmit={(e) => { e.preventDefault(); nav("/"); }}
+          onSubmit={async (e) => { 
+            e.preventDefault(); 
+            const formData = new URLSearchParams();
+            formData.append("username", username);
+            formData.append("password", password);
+            try {
+              const res = await fetch(`${API_URL}/auth/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: formData
+              });
+              if (!res.ok) throw new Error("Credenciales inválidas");
+              const data = await res.json();
+              localStorage.setItem("token", data.access_token);
+              nav("/"); 
+            } catch (error) {
+              alert("Error ingresando: Verifica tus credenciales (admin / admin123)");
+            }
+          }}
           className="w-full max-w-sm space-y-6"
         >
           <div>
@@ -37,11 +59,11 @@ export default function Login() {
             <p className="text-sm text-muted-foreground mt-1">Ingresa con tus credenciales corporativas</p>
           </div>
           <div className="space-y-3">
-            <div className="grid gap-1.5"><Label>Usuario o correo</Label><Input placeholder="usuario@empresa.com" /></div>
-            <div className="grid gap-1.5"><Label>Contraseña</Label><Input type="password" placeholder="••••••••" /></div>
+            <div className="grid gap-1.5"><Label>Usuario</Label><Input value={username} onChange={e => setUsername(e.target.value)} required placeholder="admin" /></div>
+            <div className="grid gap-1.5"><Label>Contraseña</Label><Input type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••" /></div>
           </div>
           <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">Ingresar</Button>
-          <div className="text-center text-xs text-muted-foreground">¿Olvidaste tu contraseña? <a className="text-primary hover:underline" href="#">Recupérala</a></div>
+          <div className="text-center text-xs text-muted-foreground">O usa admin / admin123</div>
         </form>
       </div>
     </div>

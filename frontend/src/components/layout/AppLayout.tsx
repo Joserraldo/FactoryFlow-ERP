@@ -1,4 +1,4 @@
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate, Navigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { Bell, Search, ChevronRight, Settings, LogOut } from "lucide-react";
@@ -22,6 +22,7 @@ import {
 const titles: Record<string, string> = {
   "/": "Dashboard",
   "/almacen": "Almacén · Materias primas",
+  "/proveedores": "Directorio de Proveedores",
   "/productos": "Ingeniería de producto",
   "/produccion": "Órdenes de producción",
   "/ventas": "Ventas & Clientes",
@@ -39,6 +40,10 @@ export default function AppLayout() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const title = titles[pathname] ?? "FactoryFlow";
+
+  if (!localStorage.getItem("token")) {
+    return <Navigate to="/login" replace />;
+  }
 
   return (
     <SidebarProvider>
@@ -124,7 +129,10 @@ export default function AppLayout() {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     className="gap-2 text-destructive focus:text-destructive"
-                    onClick={() => navigate("/login")}
+                    onClick={() => {
+                      localStorage.removeItem("token");
+                      navigate("/login");
+                    }}
                   >
                     <LogOut className="h-4 w-4" /> Cerrar sesión
                   </DropdownMenuItem>

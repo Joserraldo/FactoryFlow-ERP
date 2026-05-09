@@ -2,16 +2,25 @@ import uuid
 from datetime import datetime, timezone
 
 from sqlalchemy import Column, DateTime, Float, ForeignKey, String
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from app.db.base import Base
 
 
+class Supplier(Base):
+    __tablename__ = "suppliers"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String(100), nullable=False)
+    contact_email = Column(String(100), nullable=True)
+    phone = Column(String(50), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+
 class Unit(Base):
     __tablename__ = "units"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String(50), nullable=False)
     symbol = Column(String(10), nullable=False)
 
@@ -19,11 +28,11 @@ class Unit(Base):
 class RawMaterial(Base):
     __tablename__ = "raw_materials"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String(100), index=True, nullable=False)
 
-    primary_unit_id = Column(UUID(as_uuid=True), ForeignKey("units.id"), nullable=False)
-    secondary_unit_id = Column(UUID(as_uuid=True), ForeignKey("units.id"), nullable=False)
+    primary_unit_id = Column(String(36), ForeignKey("units.id"), nullable=False)
+    secondary_unit_id = Column(String(36), ForeignKey("units.id"), nullable=False)
 
     conversion_factor = Column(Float, nullable=False)  # primary → secondary (e.g. 1 kg → 1000 g)
 

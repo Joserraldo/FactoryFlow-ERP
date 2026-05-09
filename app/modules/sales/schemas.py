@@ -2,6 +2,8 @@ import uuid
 from datetime import datetime
 from typing import Optional
 
+from typing import Optional, List
+
 from pydantic import BaseModel, ConfigDict, EmailStr, constr
 
 
@@ -20,11 +22,28 @@ class ClientOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+# ---- Sale Items ----
+
+class SaleItemCreate(BaseModel):
+    product_id: uuid.UUID
+    quantity: float
+    unit_price: float
+
+
+class SaleItemOut(BaseModel):
+    id: uuid.UUID
+    product_id: uuid.UUID
+    quantity: float
+    unit_price: float
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 # ---- Sale Schemas ----
 
 class SaleCreate(BaseModel):
     client_id: uuid.UUID
-    total: float
+    items: List[SaleItemCreate]
 
 
 class SaleOut(BaseModel):
@@ -32,5 +51,6 @@ class SaleOut(BaseModel):
     client_id: uuid.UUID
     total: float
     created_at: datetime
+    items: List[SaleItemOut]
 
     model_config = ConfigDict(from_attributes=True)

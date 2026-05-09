@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.modules.inventory.models import InventoryMovement, MovementType
 from app.modules.materials.repository import MaterialRepository
-from app.modules.production.models import OrderStatus, ProductionConsumption, ProductionOrder
+from app.modules.production.models import OrderStatus, ProductionConsumption, ProductionOrder, ProductionStep
 from app.modules.production.repository import ProductionRepository
 from app.modules.production.schemas import ProductionOrderCreate
 from app.modules.products.repository import ProductRepository
@@ -65,10 +65,20 @@ class ProductionService:
 
             # ---- Phase 2: Create order ----
             order = ProductionOrder(
-                product_id=data.product_id,
+                product_id=str(data.product_id),
                 quantity=data.quantity,
                 status=OrderStatus.in_progress,
             )
+            
+            assignment_map = {str(sa.process_id): str(sa.assigned_to) if sa.assigned_to else None for sa in data.step_assignments}
+            for process in product.processes:
+                step = ProductionStep(
+                    process_id=str(process.id),
+                    assigned_to=assignment_map.get(str(process.id)),
+                    status=OrderStatus.pending
+                )
+                order.steps.append(step)
+
             self.prod_repo.create_order(order)
 
             # ---- Phase 3: Deduct inventory & record consumptions ----
@@ -81,7 +91,7 @@ class ProductionService:
 
                 # Record inventory OUT movement
                 movement = InventoryMovement(
-                    material_id=material.id,
+                    material_id=str(material.id),
                     type=MovementType.OUT,
                     quantity_primary=required_qty,
                     quantity_secondary=qty_secondary,
@@ -91,14 +101,16 @@ class ProductionService:
 
                 # Record consumption
                 consumption = ProductionConsumption(
-                    production_order_id=order.id,
-                    material_id=material.id,
+                    production_order_id=str(order.id),
+                    material_id=str(material.id),
                     quantity_used=required_qty,
+                    quantity_used_secondary=qty_secondary,
                 )
                 self.prod_repo.add_consumption(consumption)
 
-            # Mark order completed
+            # Mark order completed and increment product stock
             order.status = OrderStatus.completed
+            product.current_stock += data.quantity
 
             # Single atomic commit
             self.db.commit()

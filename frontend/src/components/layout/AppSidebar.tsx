@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard, Boxes, Package, Factory, ShoppingCart, Wallet, Settings, Cog,
+  LayoutDashboard, Boxes, Package, Factory, ShoppingCart, Wallet, Settings, Cog, Users
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -10,6 +10,7 @@ import {
 const main = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Almacén", url: "/almacen", icon: Boxes },
+  { title: "Proveedores", url: "/proveedores", icon: Users },
   { title: "Productos & BOM", url: "/productos", icon: Package },
   { title: "Producción", url: "/produccion", icon: Factory },
   { title: "Ventas", url: "/ventas", icon: ShoppingCart },

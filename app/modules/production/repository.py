@@ -10,8 +10,8 @@ class ProductionRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def get(self, order_id: uuid.UUID) -> Optional[ProductionOrder]:
-        return self.db.query(ProductionOrder).filter(ProductionOrder.id == order_id).first()
+    def get(self, order_id) -> Optional[ProductionOrder]:
+        return self.db.query(ProductionOrder).filter(ProductionOrder.id == str(order_id)).first()
 
     def list_all(self, skip: int = 0, limit: int = 100) -> List[ProductionOrder]:
         return self.db.query(ProductionOrder).offset(skip).limit(limit).all()

@@ -12,8 +12,8 @@ class SalesRepository:
 
     # ---- Clients ----
 
-    def get_client(self, client_id: uuid.UUID) -> Optional[Client]:
-        return self.db.query(Client).filter(Client.id == client_id).first()
+    def get_client(self, client_id) -> Optional[Client]:
+        return self.db.query(Client).filter(Client.id == str(client_id)).first()
 
     def create_client(self, client: Client) -> Client:
         self.db.add(client)

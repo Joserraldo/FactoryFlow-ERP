@@ -5,7 +5,7 @@ from typing import List
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.modules.products.models import BOMItem, Product
+from app.modules.products.models import BOMItem, Product, ProductProcess
 from app.modules.products.repository import ProductRepository
 from app.modules.products.schemas import ProductCreate
 from app.modules.materials.repository import MaterialRepository
@@ -33,13 +33,21 @@ class ProductService:
         # Build BOM items
         for item in data.bom_items:
             bom = BOMItem(
-                material_id=item.material_id,
+                material_id=str(item.material_id),
                 quantity_required=item.quantity_required,
             )
             product.bom_items.append(bom)
 
+        # Build processes
+        for process_data in data.processes:
+            process = ProductProcess(
+                name=process_data.name,
+                order_index=process_data.order_index
+            )
+            product.processes.append(process)
+
         product = self.repo.create(product)
-        logger.info("Product created: %s with %d BOM items", product.name, len(product.bom_items))
+        logger.info("Product created: %s with %d BOM items, %d processes", product.name, len(product.bom_items), len(product.processes))
         return product
 
     def list_all(self, skip: int = 0, limit: int = 100) -> List[Product]:

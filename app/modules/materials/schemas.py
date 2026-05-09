@@ -15,6 +15,25 @@ class UnitOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+# ---- Supplier Schemas ----
+
+class SupplierCreate(BaseModel):
+    name: constr(min_length=1, max_length=100)  # type: ignore[valid-type]
+    contact_email: Optional[str] = None
+    phone: Optional[str] = None
+
+
+class SupplierOut(BaseModel):
+    id: uuid.UUID
+    name: str
+    contact_email: Optional[str]
+    phone: Optional[str]
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+    
+
+
 # ---- Material Schemas ----
 
 class MaterialCreate(BaseModel):

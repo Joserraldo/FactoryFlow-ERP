@@ -1,6 +1,5 @@
 import uuid
-from datetime import datetime, timezone
-from typing import Optional
+from typing import List, Optional
 
 from sqlalchemy.orm import Session
 
@@ -22,7 +21,7 @@ class AuthRepository:
         return self.db.query(User).filter(User.email == email).first()
 
     def get_by_id(self, user_id: uuid.UUID) -> Optional[User]:
-        return self.db.query(User).filter(User.id == user_id).first()
+        return self.db.query(User).filter(User.id == str(user_id)).first()
 
     def create_user(self, user: User) -> User:
         self.db.add(user)
@@ -32,8 +31,8 @@ class AuthRepository:
 
     # ---- Refresh Tokens ----
 
-    def store_refresh_token(self, user_id: uuid.UUID, token: str, expires_at: datetime) -> RefreshToken:
-        rt = RefreshToken(user_id=user_id, token=token, expires_at=expires_at)
+    def store_refresh_token(self, user_id, token: str, expires_at) -> RefreshToken:
+        rt = RefreshToken(user_id=str(user_id), token=token, expires_at=expires_at)
         self.db.add(rt)
         self.db.commit()
         return rt
@@ -50,9 +49,9 @@ class AuthRepository:
             rt.revoked = True
             self.db.commit()
 
-    def revoke_all_user_tokens(self, user_id: uuid.UUID) -> None:
+    def revoke_all_user_tokens(self, user_id) -> None:
         self.db.query(RefreshToken).filter(
-            RefreshToken.user_id == user_id,
+            RefreshToken.user_id == str(user_id),
             RefreshToken.revoked == False,  # noqa: E712
         ).update({"revoked": True})
         self.db.commit()

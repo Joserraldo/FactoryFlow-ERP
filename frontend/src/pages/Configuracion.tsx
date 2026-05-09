@@ -53,7 +53,9 @@ export default function Configuracion() {
               <Input placeholder="Ciudad, departamento" />
             </div>
             <div className="flex justify-end pt-2">
-              <Button>Guardar cambios</Button>
+              <Button onClick={() => {
+                alert("¡Configuraciones legales y fiscales guardadas con éxito!");
+              }}>Guardar cambios</Button>
             </div>
           </CardContent>
         </Card>

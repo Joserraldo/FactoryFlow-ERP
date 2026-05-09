@@ -11,15 +11,31 @@ class ConsumptionOut(BaseModel):
     id: uuid.UUID
     material_id: uuid.UUID
     quantity_used: float
+    quantity_used_secondary: Optional[float] = None
 
     model_config = ConfigDict(from_attributes=True)
 
 
-# ---- Production Order ----
+# ---- Production Order Schemas ----
+
+class StepAssignmentCreate(BaseModel):
+    process_id: uuid.UUID
+    assigned_to: Optional[uuid.UUID] = None
+
 
 class ProductionOrderCreate(BaseModel):
     product_id: uuid.UUID
     quantity: int
+    step_assignments: List[StepAssignmentCreate] = []
+
+
+class ProductionStepOut(BaseModel):
+    id: uuid.UUID
+    process_id: uuid.UUID
+    assigned_to: Optional[uuid.UUID] = None
+    status: str
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ProductionOrderOut(BaseModel):
@@ -29,5 +45,6 @@ class ProductionOrderOut(BaseModel):
     status: str
     created_at: datetime
     consumptions: List[ConsumptionOut] = []
+    steps: List[ProductionStepOut] = []
 
     model_config = ConfigDict(from_attributes=True)

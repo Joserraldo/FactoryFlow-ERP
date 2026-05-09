@@ -1,136 +1,78 @@
-# FactoryFlow ERP — Backend API
+# FactoryFlow ERP 🏭
 
-Manufacturing ERP system built with **FastAPI**, **PostgreSQL**, **SQLAlchemy 2.0**, **Alembic**, and **Docker**.
+FactoryFlow es un sistema ERP de grado industrial enfocado en la trazabilidad total, diseñado para gestionar desde la entrada de materias primas hasta la producción, almacenamiento y venta de productos finales. Esta arquitectura ha sido modernizada a la **Versión 1.3** integrando un stack sólido:
 
-## Features
-
-- 🔐 **JWT Authentication** — Access + refresh tokens with DB-persisted revocation
-- 📦 **Inventory Management** — Dual-unit tracking with weighted average cost (CPP)
-- 🏭 **Production Orders** — BOM-based material deduction with ACID transactions
-- 🛒 **Sales & Clients** — Sales tracking with client management
-- 📊 **Products & BOM** — Product catalog with bill of materials
-
-## Tech Stack
-
-| Component | Technology |
-|-----------|-----------|
-| Framework | FastAPI |
-| Database  | PostgreSQL 16 (Supabase-compatible) |
-| ORM       | SQLAlchemy 2.0 |
-| Migrations| Alembic |
-| Auth      | JWT (python-jose) + bcrypt |
-| Container | Docker + Docker Compose |
-
-## Quick Start
-
-### With Docker (recommended)
-
-```bash
-docker-compose up --build -d
-# Run seed (creates admin user + sample data)
-docker-compose exec backend python seed.py
-```
-
-### Without Docker
-
-```bash
-# Create .env from example
-cp .env.example .env
-# Edit DATABASE_URL to point to your PostgreSQL instance
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run migrations
-alembic upgrade head
-
-# Seed database
-python seed.py
-
-# Start server
-uvicorn app.main:app --reload
-```
-
-## API Docs
-
-Once running, visit: **http://localhost:8000/docs** (Swagger UI)
-
-## Default Credentials
-
-| Username | Password | Role |
-|----------|----------|------|
-| admin    | admin123 | admin |
-
-## Project Structure
-
-```
-app/
-├── main.py                  # FastAPI application + router wiring
-├── core/
-│   ├── config.py            # Settings from .env
-│   ├── security.py          # JWT + bcrypt utilities
-│   └── dependencies.py      # get_db, get_current_user
-├── db/
-│   ├── base.py              # SQLAlchemy DeclarativeBase
-│   └── session.py           # Engine + SessionLocal
-└── modules/
-    ├── auth/                # Register, login, refresh, revoke
-    ├── materials/           # Raw materials + units
-    ├── inventory/           # Stock movements + CPP calculation
-    ├── products/            # Products + BOM
-    ├── production/          # Production orders + consumptions
-    └── sales/               # Clients + sales
-```
-
-## 🔐 Seguridad y Variables de Entorno
-
-El proyecto utiliza un archivo `.env` para gestionar credenciales. **Nunca subas tu archivo `.env` real al repositorio.**
-
-| Variable | Descripción | Recomendación |
-|----------|-------------|---------------|
-| `POSTGRES_USER` | Usuario de la DB | No usar `postgres` en prod |
-| `POSTGRES_PASSWORD` | Contraseña de la DB | Usar una cadena larga y compleja |
-| `DATABASE_URL` | URL de conexión SQL | Se construye automáticamente en Docker |
-| `SECRET_KEY` | Firma de Access Tokens | Generar con `openssl rand -hex 32` |
-| `REFRESH_SECRET_KEY` | Firma de Refresh Tokens | Usar una llave distinta a la anterior |
-| `ALGORITHM` | Algoritmo JWT | Por defecto: `HS256` |
-| `ACCESS_TOKEN_EXPIRE_MINUTES` | Duración Access Token | `30` |
-| `REFRESH_TOKEN_EXPIRE_DAYS` | Duración Refresh Token | `7` |
-
+*   **Frontend:** React (Vite) + TypeScript + Tailwind CSS (shadcn/ui).
+*   **Backend:** FastAPI (Python) + SQLAlchemy (SQLite).
+*   **Paradigma:** Trazabilidad basada en BOM (Listas de Materiales) y procesos de fabricación.
 
 ---
 
-## 🚀 Guía de Prueba Rápida
+## 🚀 Guía de Inicio Rápido (Local)
 
-Si acabas de descargar el proyecto y quieres probarlo de inmediato, sigue este flujo:
+### 1. Requisitos Previos
+*   Python 3.10+
+*   Node.js 18+
 
-### 1. Levantar la infraestructura
-Asegúrate de tener Docker instalado y ejecuta:
+### 2. Levantar el Backend (FastAPI)
+Abre un terminal en la raíz del proyecto y ejecuta:
 ```bash
-docker-compose up --build -d
-```
-*Este comando levantará la base de datos PostgreSQL y la API de FastAPI automáticamente.*
+# 1. Crear y activar tu entorno virtual (recomendado)
+python -m venv venv
+venv\Scripts\activate  # En Windows
 
-### 2. Poblar la base de datos (Seed)
-Ejecuta el script de semilla para crear el usuario administrador y datos base:
+# 2. Instalar dependencias
+pip install -r requirements.txt
+
+# 3. Arrancar el servidor
+uvicorn app.main:app --reload
+```
+*La API estará disponible en `http://localhost:8000`*.
+
+### 3. Levantar el Frontend (React/Vite)
+Abre un segundo terminal desde la raíz y ejecuta:
 ```bash
-docker-compose exec backend python seed.py
+cd frontend
+npm install
+npm run dev
 ```
+*El sistema estará disponible en `http://localhost:5173`*.
 
-### 3. Probar los Endpoints
-1. Abre tu navegador en **[http://localhost:8000/docs](http://localhost:8000/docs)**.
-2. Haz clic en el botón **"Authorize"** (icono de candado arriba a la derecha).
-3. Ingresa las credenciales: 
-   - **Username**: `admin`
-   - **Password**: `admin123`
-4. Ahora puedes probar cualquier endpoint. Te recomendamos empezar por:
-   - `GET /materials/`: Para ver los materiales creados por el seed.
-   - `POST /inventory/movements`: Para registrar entradas/salidas de stock.
-   - `POST /production-orders/`: Para simular una orden de producción que descuenta materia prima.
+---
 
-### 4. Detener el proyecto
-Cuando termines de probar, puedes apagar todo con:
-```bash
-docker-compose down
-```
+## 🛠️ Gestión de Datos y Base de Datos (Seeder)
 
+El proyecto incluye un script robusto llamado `seed.py` (Versión 1.3 - Demo Ready) que purga la base de datos y la vuelve a llenar con escenarios hiperrealistas (cientos de kilos de inventario, proveedores cruzados, recetas industriales exactas y decenios de facturas) para simular un ambiente productivo en tiempo real.
+
+**¿Cómo reiniciar la base de datos y cargar la Demo?**
+1. Detén el servidor de Backend temporalmente (`Ctrl + C`).
+2. Ejecuta el script de semilla:
+   ```bash
+   python seed.py
+   ```
+3. Verás un mensaje de éxito: `[OK] Massive Realistic Version 1.3 Seed applied!`.
+4. Vuelve a arrancar el servidor: `uvicorn app.main:app --reload`.
+
+### 🚨 IMPORTANTE: ¿Qué hacer si "No veo datos" después de correr el Seed?
+Si corres `seed.py` mientras tenías el ERP abierto en el navegador, **se purgará el usuario administrador que estabas usando** de la base de datos.
+Al no existir en el backend, el sistema bloqueará tu token antiguo (Error 401) y verás la pantalla vacía o con todo en ceros.
+
+**Solución:**
+1. Haz clic en **"Cerrar Sesión"** en la esquina superior derecha o recarga la página para que el sistema te expulse automáticamente al Login.
+2. Ingresa de nuevo con las credenciales maestras limpias:
+   * **Usuario:** `admin`
+   * **Contraseña:** `admin123`
+
+---
+
+## ✅ Cumplimiento SRS (System Requirements Specification)
+
+Actualmente cubrimos fielmente las directrices del SRS:
+- **Gestión de Identidad:** Login JWT implementado.
+- **Trazabilidad Pura:** Integración Materias Primas -> Productos + BOM -> Manufactura -> Ventas. El costo de una venta rastrea hasta el CPP (Costo Promedio Ponderado) de los almacenes base.
+- **Finanzas Dinámicas:** Todo el dashboard recalcula los márgenes brutos con base a las existencias contables consumidas.
+- **UX Premium:** Interfaz implementada con el estándar Glassmorphism dictado en la etapa de planeación, soportada 100% sobre las rutas del Backend real.
+
+---
+
+*Desarrollado con arquitectura nivel Senior para cumplimiento MVP escalable.*
