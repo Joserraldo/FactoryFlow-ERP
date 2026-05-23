@@ -1,22 +1,45 @@
+"""
+===============================================================================
+Archivo: config.py
+Propósito: Carga y centraliza todas las variables de entorno y configuraciones 
+           globales de la aplicación.
+Rol Arquitectónico: Actúa como la fuente única de verdad (Single Source of Truth)
+                   para la configuración. Utiliza `pydantic-settings` para validar
+                   los tipos de datos de las variables de entorno.
+===============================================================================
+"""
+
 import os
+
 from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
+    """
+    Clase de configuración principal.
+    Las variables definidas aquí se sobrescribirán automáticamente con los 
+    valores del archivo `.env` si existen y coinciden en nombre.
+    """
     PROJECT_NAME: str = "FactoryFlow ERP"
     API_V1_STR: str = "/api/v1"
 
-    # JWT
+    # ==========================================
+    # Configuración de Seguridad (JWT)
+    # ==========================================
     SECRET_KEY: str = "your_secret_key_from_env"
     REFRESH_SECRET_KEY: str = "your_refresh_secret_key_from_env"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
-    # Database
+    # ==========================================
+    # Configuración de Base de Datos
+    # ==========================================
     DATABASE_URL: str = "postgresql+psycopg2://user:password@localhost:5432/dbname"
 
+    # Configuración del modelo Pydantic para la lectura del entorno
     model_config = {"case_sensitive": True, "env_file": ".env", "extra": "ignore"}
 
 
+# Instancia global (Singleton) que será importada por el resto de la aplicación
 settings = Settings()

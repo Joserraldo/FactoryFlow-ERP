@@ -1,3 +1,16 @@
+/**
+ * ============================================================================
+ * Página: Producción (Produccion)
+ * Propósito: Visualizar, dar seguimiento y encolar lotes de fabricación 
+ *            mediante un tablero Kanban de 5 columnas.
+ * Rol Arquitectónico: View Component / Controller. Consume el API Gateway 
+ *                     del backend y maneja de forma robusta las validaciones 
+ *                     del ciclo atómico de producción (RF-02).
+ * Dependencias: PageHeader (Layout), UI components (Dialog, Input, Card), 
+ *               fetchAPI (Cliente HTTP centralizado).
+ * ============================================================================
+ */
+
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +22,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+// Define clases CSS dinámicas según el estado físico/virtual de la orden.
 const tone: Record<string, string> = {
   "En proceso": "bg-primary/10 text-primary border-primary/20",
   "Planificada": "bg-secondary text-secondary-foreground border-border",
@@ -17,18 +31,27 @@ const tone: Record<string, string> = {
   "Detenida": "bg-destructive/10 text-destructive border-destructive/30",
 };
 
+// Columnas del tablero Kanban ERP
 const cols = ["Planificada", "Liberada", "En proceso", "Detenida", "Completada"];
 
+/**
+ * Componente principal de la página de Producción.
+ * Controla el Kanban, las llamadas asíncronas de datos y la creación de órdenes de fabricación.
+ */
 export default function Produccion() {
   const [orders, setOrders] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // Form state
+  // Estados para el formulario modal de nueva orden
   const [isOpen, setIsOpen] = useState(false);
   const [productId, setProductId] = useState("");
   const [quantity, setQuantity] = useState(10);
 
+  /**
+   * Carga concurrentemente las órdenes de producción y la lista de productos
+   * del servidor para poblar el Kanban y el formulario modal.
+   */
   const loadData = () => {
     Promise.all([
       fetchAPI("/production-orders/").catch(() => []),
@@ -39,8 +62,14 @@ export default function Produccion() {
     }).finally(() => setLoading(false));
   };
 
+  // Carga inicial al montar el componente
   useEffect(() => { loadData(); }, []);
 
+  /**
+   * Envía la orden de producción solicitada al Backend de FastAPI.
+   * Maneja errores lógicos como falta de stock o recetas inexistentes (BOM)
+   * que son regresados de forma atómica por el backend en el rollback.
+   */
   const handleCreate = async () => {
     if (!productId) return alert("Selecciona un producto");
     try {
@@ -53,6 +82,7 @@ export default function Produccion() {
       alert("¡Orden de Producción encolada!");
     } catch (e: any) {
       const msg = e.message?.toLowerCase();
+      // Captura el fallo de transacción de FastAPI (Falta de stock o BOM sin items)
       if (msg?.includes("bom") || msg?.includes("insufficient") || msg?.includes("stock")) {
         alert("Error de Manufactura (RF-02):\n\n" + e.message + "\n\nAsegúrate de que este producto cuenta con una lista de materiales (BOM) y que tienes STOCK SUFICIENTE en el almacén.");
       } else {
@@ -102,6 +132,7 @@ export default function Produccion() {
         }
       />
 
+      {/* Tablero Kanban */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
         {cols.map(col => {
           const items = orders.filter(o => {

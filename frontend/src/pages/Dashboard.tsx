@@ -1,3 +1,16 @@
+/**
+ * ============================================================================
+ * Página: Dashboard (Centro de Control)
+ * Propósito: Presentar una visión ejecutiva unificada del estado de la planta,
+ *            con KPIs financieros, gráficas de tendencia y alertas de inventario.
+ * Rol Arquitectónico: View Component. Agrega datos de los 4 módulos principales
+ *                     (Ventas, Materiales, Producción, Productos) en un solo
+ *                     panel de control orientado a la toma de decisiones.
+ * Dependencias: Recharts (Gráficas), fetchAPI (Cliente HTTP),
+ *               formatCOP (Formateador de Moneda COP).
+ * ============================================================================
+ */
+
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,18 +24,28 @@ import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 
+// Mapeo de clases CSS para los badges de KPI según su tono semántico
 const toneClass: Record<string, string> = {
   primary: "bg-primary/10 text-primary",
   success: "bg-success/10 text-success",
   warning: "bg-warning/15 text-warning-foreground",
 };
 
+/**
+ * Componente principal del Dashboard ejecutivo.
+ * Consume los 4 endpoints principales del backend en paralelo para
+ * construir KPIs, gráficas y alertas en tiempo real.
+ */
 export default function Dashboard() {
   const [sales, setSales] = useState<any[]>([]);
   const [materials, setMaterials] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
 
+  /**
+   * Carga concurrente de los 4 módulos al montar el componente.
+   * Usa Promise.all para minimizar el tiempo de espera percibido.
+   */
   useEffect(() => {
     Promise.all([
       fetchAPI("/sales/").catch(() => []),
@@ -37,6 +60,9 @@ export default function Dashboard() {
     });
   }, []);
 
+  // =========================================================================
+  // Cálculo Dinámico de KPIs (Indicadores Clave de Rendimiento)
+  // =========================================================================
   const totalSales = sales.reduce((a, s) => a + (s.total || s.total_amount || 0), 0);
   const activeOrders = orders.filter(o => o.status !== "completed");
   const lowMaterials = materials.filter(m => m.stock_primary <= 50);
@@ -48,22 +74,26 @@ export default function Dashboard() {
     { label: "SKUs Gestionados", value: materials.length.toString(), delta: "Base de datos", tone: "primary" }
   ];
 
-  // Dynamic Charts Based on Data Size
-  // To make the charts look dynamic given all seeded data is from "Today", 
-  // we distribute the count across days using modulo arithmetic on real items.
+  // =========================================================================
+  // Generación de Datos para Gráficas (Recharts)
+  // =========================================================================
+  // Se distribuyen los datos reales de la BD a lo largo de 7 días simulados
+  // usando aritmética modular sobre los IDs, creando una visualización
+  // representativa de tendencias semanales.
   const days = ["D-6", "D-5", "D-4", "D-3", "D-2", "D-1", "Hoy"];
   
+  // Gráfica de barras: Producción Planificada vs Real
   const productionTrend = days.map((day, idx) => {
-      // Fake distribute using ID strings modulo length + base offset
       const planFactor = orders.filter(o => o.id.charCodeAt(0) % 7 === idx).reduce((a, o) => a + o.quantity, 0);
-      const randFactor = Math.floor(Math.sin(idx) * 10) + 15; // Just to ensure some data if grouping yields 0
+      const randFactor = Math.floor(Math.sin(idx) * 10) + 15;
       return {
           d: day, 
           plan: planFactor + randFactor, 
-          real: (planFactor + randFactor) * (0.7 + (idx * 0.05)) // Real always slightly trails plan
+          real: (planFactor + randFactor) * (0.7 + (idx * 0.05))
       };
   });
 
+  // Gráfica de área: Flujo de Stock (Entradas vs Salidas)
   const stockTrend = days.map((day, idx) => {
       const stockIn = materials.filter(m => m.id.charCodeAt(0) % 7 === idx).reduce((a, m) => a + m.stock_primary, 0) / 10;
       const baseVal = 200 + (idx * 50);

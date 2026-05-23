@@ -1,3 +1,13 @@
+/**
+ * ============================================================================
+ * Componente: AppSidebar
+ * Propósito: Barra de navegación lateral colapsable del ERP.
+ * Rol Arquitectónico: Navigation Component. Organiza las rutas del sistema en
+ *                     dos grupos: "Operación" (módulos funcionales) y "Sistema"
+ *                     (configuración administrativa).
+ * ============================================================================
+ */
+
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Boxes, Package, Factory, ShoppingCart, Wallet, Settings, Cog, Users

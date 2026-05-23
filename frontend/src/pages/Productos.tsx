@@ -1,3 +1,17 @@
+/**
+ * ============================================================================
+ * Página: Productos (Ingeniería de Producto)
+ * Propósito: Gestionar el catálogo de productos terminados, definir recetas
+ *            de fabricación (BOM) y establecer los pasos de manufactura.
+ * Rol Arquitectónico: View Component / Controller. Permite la creación
+ *                     atómica de productos con sus dependencias anidadas
+ *                     (BOM items + Procesos), aprovechando el cascade de
+ *                     SQLAlchemy en el backend.
+ * Dependencias: PageHeader (Layout), UI components (Dialog, Card, ScrollArea),
+ *               fetchAPI (Cliente HTTP), formatCOP (Formateador de Moneda).
+ * ============================================================================
+ */
+
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

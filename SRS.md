@@ -13,7 +13,7 @@
 ### 1.1 Propósito
 
 El propósito de este documento es establecer los requisitos funcionales y no funcionales para el sistema **FactoryFlow ERP**. Esta especificación servirá como guía principal para el diseño, desarrollo y pruebas del sistema, garantizando la trazabilidad total del inventario, los procesos de producción y las ventas (IEEE, 1998).
-
+https://unab.edu.co/subete-al-bus-unab/
 ### 1.2 Alcance
 
 FactoryFlow ERP es un sistema integral diseñado para automatizar y controlar la cadena de valor en empresas manufactureras. Sus módulos principales son:

@@ -1,3 +1,14 @@
+/**
+ * ============================================================================
+ * Componente: App (Root Component)
+ * Propósito: Punto de entrada de la aplicación React/Vite. Ensambla los 
+ *            proveedores globales (React Query, Tooltips, Toasters) y define
+ *            el árbol de rutas completo de la SPA.
+ * Rol Arquitectónico: Composition Root. Configura la infraestructura de UI 
+ *                     (caché HTTP, notificaciones, routing) antes de renderizar.
+ * ============================================================================
+ */
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";

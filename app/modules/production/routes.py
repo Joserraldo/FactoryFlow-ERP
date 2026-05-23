@@ -1,3 +1,12 @@
+"""
+===============================================================================
+Archivo: routes.py
+Propósito: Endpoints HTTP para la gestión de Órdenes de Producción.
+Rol Arquitectónico: Controller. Expone la funcionalidad atómica a través de 
+                   la API, garantizando que el usuario esté autenticado.
+===============================================================================
+"""
+
 from typing import List
 
 from fastapi import APIRouter, Depends, status
@@ -17,6 +26,12 @@ def create_production_order(
     db: Session = Depends(get_db),
     _current_user: User = Depends(get_current_user),
 ):
+    """
+    Endpoint de grado industrial: Dispara una transacción ACID para construir 
+    un lote de productos. 
+    Lanza error 400 Bad Request si el inventario de alguna materia prima 
+    es insuficiente para cubrir la receta solicitada (BOM).
+    """
     return ProductionService(db).create_order(data)
 
 
@@ -27,4 +42,8 @@ def list_production_orders(
     db: Session = Depends(get_db),
     _current_user: User = Depends(get_current_user),
 ):
+    """
+    Obtiene el historial (bitácora) de todas las órdenes de producción
+    realizadas, incluyendo los operarios asignados y materias primas consumidas.
+    """
     return ProductionService(db).list_all(skip, limit)

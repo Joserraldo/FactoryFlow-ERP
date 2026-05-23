@@ -1,3 +1,17 @@
+/**
+ * ============================================================================
+ * Página: Login
+ * Propósito: Pantalla de autenticación del ERP. Envía credenciales usando
+ *            OAuth2 Password Flow (application/x-www-form-urlencoded) al
+ *            endpoint /auth/login de FastAPI.
+ * Rol Arquitectónico: Auth Entry Point. Almacena el JWT (access_token) en
+ *                     localStorage tras una autenticación exitosa, habilitando
+ *                     las peticiones posteriores del fetchAPI wrapper.
+ * Dependencias: react-router-dom (useNavigate), UI components (Button, Input),
+ *               Lucide (Iconos), API_URL (Base URL del backend).
+ * ============================================================================
+ */
+
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

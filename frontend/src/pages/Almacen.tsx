@@ -1,3 +1,16 @@
+/**
+ * ============================================================================
+ * Página: Almacén (Almacen)
+ * Propósito: Administrar el stock físico de materias primas, registrar entradas
+ *            de inventario (IN) y monitorizar el CPP y niveles de reorden.
+ * Rol Arquitectónico: View Component / Controller. Coordina el flujo de entradas
+ *                     en el Kardex y refleja las modificaciones en el Costo
+ *                     Promedio Ponderado calculado por el backend.
+ * Dependencias: PageHeader (Layout), UI components (Table, Dialog, Input),
+ *               fetchAPI (Cliente HTTP), formatCOP (Formateador de Moneda).
+ * ============================================================================
+ */
+
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,22 +23,31 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 
+// Helpers visuales para el semáforo de estado de inventario
 const dot = (s: string) =>
   s === "ok" ? "bg-success" : s === "low" ? "bg-warning" : "bg-destructive";
 const label = (s: string) => (s === "ok" ? "Óptimo" : s === "low" ? "Bajo" : "Quiebre");
 
+/**
+ * Componente principal de la página de Almacén.
+ * Controla el listado de materias primas y la ejecución de entradas de stock.
+ */
 export default function Almacen() {
   const [materials, setMaterials] = useState<any[]>([]);
   const [units, setUnits] = useState<any[]>([]);
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Form State
+  // Estados locales para el control de formularios modales
   const [isOpen, setIsOpen] = useState(false);
   const [isMovementOpen, setIsMovementOpen] = useState(false);
   const [formData, setFormData] = useState({ name: "", primary_unit_id: "", secondary_unit_id: "", conversion_factor: 1, stock_primary: 0, cost_cpp: 0 });
   const [movementData, setMovementData] = useState({ material_id: "", supplier_id: "", quantity_primary: 0, unit_cost: 0 });
 
+  /**
+   * Obtiene la información inicial combinando peticiones de materiales,
+   * unidades de medida y proveedores registrados.
+   */
   const loadData = () => {
     Promise.all([
       fetchAPI("/materials/").catch(() => []),
@@ -38,8 +60,12 @@ export default function Almacen() {
     }).finally(() => setLoading(false));
   };
 
+  // Gancho de efecto para inicializar la carga de datos del Almacén.
   useEffect(() => { loadData(); }, []);
 
+  /**
+   * Envía el formulario para registrar un nuevo material en la base de datos.
+   */
   const handleCreate = async () => {
     if (!formData.name || !formData.primary_unit_id || !formData.secondary_unit_id) return alert("Completa todos los campos obligatorios");
     try {
@@ -52,6 +78,11 @@ export default function Almacen() {
     } catch (e: any) { alert("Error: " + e.message); }
   };
 
+  /**
+   * Registra una Entrada de Inventario (IN).
+   * Al procesar, el backend recalcula automáticamente el Costo Promedio Ponderado (CPP) 
+   * del material según la fórmula matemática de valuación de inventario.
+   */
   const handleMovement = async () => {
     if (!movementData.material_id || movementData.quantity_primary <= 0 || movementData.unit_cost <= 0) {
       return alert("Completa el material, cantidad (mayor a 0) y costo unitario.");
@@ -71,7 +102,6 @@ export default function Almacen() {
     } catch(e: any) { alert("Falló la entrada: " + e.message); }
   };
 
-
   if (loading) return <div className="p-8 text-center text-muted-foreground">Cargando inventario...</div>;
 
   return (
@@ -83,6 +113,7 @@ export default function Almacen() {
           <>
             <Button variant="outline" size="sm" onClick={() => alert("Los filtros avanzados requieren plan Pro. Comunícate con soporte.")}><Filter className="h-4 w-4 mr-2" />Filtros</Button>
             
+            {/* Modal de Entrada de Inventario (IN) */}
             <Dialog open={isMovementOpen} onOpenChange={setIsMovementOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm" className="bg-accent/10 border-accent/20 text-accent font-medium">Entrada Inventario</Button>
@@ -112,6 +143,8 @@ export default function Almacen() {
                 <DialogFooter><Button onClick={handleMovement}>Procesar Entrada</Button></DialogFooter>
               </DialogContent>
             </Dialog>
+
+            {/* Modal de Registro de Nuevo Material */}
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
               <DialogTrigger asChild>
                 <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90"><Plus className="h-4 w-4 mr-2" />Nuevo material</Button>
@@ -136,6 +169,7 @@ export default function Almacen() {
         }
       />
 
+      {/* Tarjetas Informativas / KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         {[
           { l: "SKUs totales", v: materials.length },
@@ -152,6 +186,7 @@ export default function Almacen() {
         ))}
       </div>
 
+      {/* Tabla del Kardex / Inventario */}
       <Card className="border-border/60">
         <CardContent className="p-0">
           <div className="p-4 border-b">

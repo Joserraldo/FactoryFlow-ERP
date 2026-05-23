@@ -1,3 +1,12 @@
+"""
+===============================================================================
+Archivo: routes.py
+Propósito: Endpoints HTTP (API REST) para Ventas y Clientes.
+Rol Arquitectónico: Controller. Expone la funcionalidad protegiéndola con 
+                   Autenticación JWT.
+===============================================================================
+"""
+
 from typing import List
 
 from fastapi import APIRouter, Depends, status
@@ -11,7 +20,9 @@ from app.modules.sales.service import SalesService
 router = APIRouter()
 
 
-# ---- Clients ----
+# =============================================================================
+# Rutas de Clientes
+# =============================================================================
 
 @router.post("/clients", response_model=ClientOut, status_code=status.HTTP_201_CREATED)
 def create_client(
@@ -19,6 +30,7 @@ def create_client(
     db: Session = Depends(get_db),
     _current_user: User = Depends(get_current_user),
 ):
+    """Registra a un nuevo cliente en el directorio."""
     return SalesService(db).create_client(data)
 
 
@@ -29,10 +41,13 @@ def list_clients(
     db: Session = Depends(get_db),
     _current_user: User = Depends(get_current_user),
 ):
+    """Devuelve el directorio completo de clientes registrados."""
     return SalesService(db).list_clients(skip, limit)
 
 
-# ---- Sales ----
+# =============================================================================
+# Rutas de Ventas (Punto de Venta)
+# =============================================================================
 
 @router.post("/", response_model=SaleOut, status_code=status.HTTP_201_CREATED)
 def create_sale(
@@ -40,6 +55,11 @@ def create_sale(
     db: Session = Depends(get_db),
     _current_user: User = Depends(get_current_user),
 ):
+    """
+    Registra una Factura de Venta de manera Atómica.
+    Descuenta del inventario final los productos que se están comprando.
+    Si un producto no tiene suficiente stock, se aborta la venta completa (Rollback).
+    """
     return SalesService(db).create_sale(data)
 
 
@@ -50,4 +70,5 @@ def list_sales(
     db: Session = Depends(get_db),
     _current_user: User = Depends(get_current_user),
 ):
+    """Obtiene el historial de todas las transacciones de ventas cerradas."""
     return SalesService(db).list_sales(skip, limit)

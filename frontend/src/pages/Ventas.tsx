@@ -1,3 +1,16 @@
+/**
+ * ============================================================================
+ * Página: Ventas (Ventas)
+ * Propósito: Visualizar la facturación histórica, el total acumulado de ingresos
+ *            y crear facturas de venta restando stock del producto terminado.
+ * Rol Arquitectónico: View Component / Controller. Maneja el flujo secuencial
+ *                     de resolución de cliente y posterior guardado atómico
+ *                     de la venta (RF-03).
+ * Dependencias: PageHeader (Layout), UI components (Table, Dialog, Input),
+ *               fetchAPI (Cliente HTTP), formatCOP (Formateador de Moneda).
+ * ============================================================================
+ */
+
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,12 +23,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+// Estilos visuales del estado de facturas
 const tone: Record<string, string> = {
   "Pagada": "bg-success/15 text-success",
   "Pendiente": "bg-warning/20 text-warning-foreground",
   "Vencida": "bg-destructive/10 text-destructive",
 };
 
+/**
+ * Componente principal para el módulo de facturación del ERP.
+ * Controla el listado y creación de boletas/facturas comerciales.
+ */
 export default function Ventas() {
   const [sales, setSales] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
@@ -24,6 +42,10 @@ export default function Ventas() {
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState({ client_name: "", product_id: "", quantity: 1, unit_price: 0 });
 
+  /**
+   * Carga desde la base de datos el historial de ventas (ordenando por fecha descendiente),
+   * productos activos para el selector de facturación y directorio de clientes.
+   */
   const loadData = () => {
     Promise.all([
       fetchAPI("/sales/").catch(() => []),
@@ -36,19 +58,26 @@ export default function Ventas() {
     }).finally(() => setLoading(false));
   };
 
+  // Gancho de efecto inicializador de la página de Ventas
   useEffect(() => { loadData(); }, []);
 
+  /**
+   * Procesa la creación de una venta con un flujo secuencial:
+   * 1. Resuelve (crea o mapea) el ID del cliente según su nombre.
+   * 2. Registra la orden de venta (factura) con el item seleccionado.
+   *    FastAPI valida que haya stock de producto terminado en inventario.
+   */
   const handleCreate = async () => {
     if (!formData.client_name || !formData.product_id) return alert("Completa todos los campos obligatorios");
     try {
-      // 1. Resolve client (RF-03 association)
+      // Paso 1: Resolver Cliente (Asociación automática RF-03)
       const clientRes = await fetchAPI("/sales/clients", {
         method: "POST",
         body: JSON.stringify({ name: formData.client_name, email: `${formData.client_name.replace(/\s+/g,'').toLowerCase()}@cliente.com` })
       });
       if (!clientRes.id) throw new Error("Fallo la creación del cliente");
 
-      // 2. Register sale globally
+      // Paso 2: Registrar la Venta atómicamente y deducir inventario terminado
       await fetchAPI("/sales/", {
         method: "POST",
         body: JSON.stringify({
@@ -97,6 +126,7 @@ export default function Ventas() {
         }
       />
 
+      {/* Tarjetas informativas o KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Card className="border-border/60"><CardContent className="p-5">
           <div className="text-xs uppercase tracking-wider text-muted-foreground">Ventas del periodo</div>
@@ -112,6 +142,7 @@ export default function Ventas() {
         </CardContent></Card>
       </div>
 
+      {/* Tabla del Historial de Ventas */}
       <Card className="border-border/60">
         <CardContent className="p-0">
           <Table>
